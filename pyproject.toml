@@ -9,6 +9,13 @@ package-mode = true
 python = "^3.12"
 numpy = "^2.2.3"
 
+[tool.poetry.group.dev.dependencies]
+black = "25.1.0"
+ruff = "0.9.6"
+isort = "6.0.0"
+mypy = "1.15.0"
+pytest = "8.3.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

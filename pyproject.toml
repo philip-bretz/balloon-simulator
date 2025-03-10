@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "balloon-simulator"
+version = "0.1.0"
+description = "Simulate weather balloons with payloads"
+authors = ["Philip Bretz"]
+package-mode = true
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "^2.2.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

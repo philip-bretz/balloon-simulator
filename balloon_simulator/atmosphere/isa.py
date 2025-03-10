@@ -154,11 +154,48 @@ class ISAAtmosphere(AtmosphereBase):
         )
         return pressure
 
+    def _troposphere_density(self, altitude: T) -> T:
+        return MSL_DENSITY * (
+            1 + (TROPOSPHERE_LAPSE_RATE * altitude / self._msl_temperature)
+        ) ** ((-GRAVITY / (TROPOSPHERE_LAPSE_RATE * UNIVERSAL_AIR_CONSTANT)) + 1)
+
+    @property
+    def _tropopause_start_density(self) -> float:
+        return self._troposphere_density(TROPOPAUSE_ALTITUDE)
+
+    def _tropopause_density(self, altitude: T) -> T:
+        return self._tropopause_start_density * np.exp(
+            -GRAVITY
+            / (UNIVERSAL_AIR_CONSTANT * self._tropopause_temperature)
+            * (altitude - TROPOPAUSE_ALTITUDE)
+        )
+
+    @property
+    def _stratosphere1_start_density(self) -> float:
+        return self._tropopause_density(STRATOSPHERE1_ALTITUDE)
+
+    def _stratosphere1_density(self, altitude: T) -> T:
+        return self._stratosphere1_start_density * (
+            1
+            + STRATOSPHERE1_LAPSE_RATE
+            * (altitude - STRATOSPHERE1_ALTITUDE)
+            / self._tropopause_temperature
+        ) ** ((-GRAVITY / (STRATOSPHERE1_LAPSE_RATE * UNIVERSAL_AIR_CONSTANT)) + 1)
+
     def density_at_altitude(self, altitude: np.ndarray) -> np.ndarray:
         """
-        Calculate pressure [hPa] at altitude [m], vectorized
+        Calculate density [kg/m^3] at altitude [m], vectorized
 
         Calculation is split between troposphere, tropopause, and first part of stratosphere,
         with NaN for altitudes outside that range.
         """
-        raise NotImplementedError
+        density = np.full(altitude.shape, np.nan)
+        masks = ISAMasks.from_altitude(altitude)
+        density[masks.troposphere] = self._troposphere_density(
+            altitude[masks.troposphere]
+        )
+        density[masks.tropopause] = self._tropopause_density(altitude[masks.tropopause])
+        density[masks.stratosphere1] = self._stratosphere1_density(
+            altitude[masks.stratosphere1]
+        )
+        return density

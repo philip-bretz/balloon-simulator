@@ -4,11 +4,14 @@ from typing import TypeVar
 import numpy as np
 
 from balloon_simulator.atmosphere.base import AtmosphereBase
-from balloon_simulator.atmosphere.state import AtmosphereQuery, AtmosphereState
+from balloon_simulator.atmosphere.state import (
+    AtmosphereArrayQuery,
+    AtmosphereArrayState,
+)
 from balloon_simulator.constants import GRAVITY, UNIVERSAL_AIR_CONSTANT
 
 MSL_TEMPERATURE = 288.15  # K
-MSL_PRESSURE = 1013.25  # hPa
+MSL_PRESSURE = 101_325.0  # Pa
 MSL_DENSITY = 1.225  # kg/m^3
 
 TROPOSPHERE_ALTITUDE = 0.0  # m
@@ -58,14 +61,18 @@ class ISAAtmosphere(AtmosphereBase):
     def _msl_temperature(self) -> float:
         return MSL_TEMPERATURE + self._offset
 
-    def calculate_state(self, query: AtmosphereQuery) -> AtmosphereState:
+    def _calculate_state_core(
+        self, query: AtmosphereArrayQuery
+    ) -> AtmosphereArrayState:
         return self._calculate_state_for_altitude(query.altitude)
 
-    def _calculate_state_for_altitude(self, altitude: np.ndarray) -> AtmosphereState:
+    def _calculate_state_for_altitude(
+        self, altitude: np.ndarray
+    ) -> AtmosphereArrayState:
         temperature = self.temperature_at_altitude(altitude)
         pressure = self.pressure_at_altitude(altitude)
         density = self.density_at_altitude(altitude)
-        return AtmosphereState(
+        return AtmosphereArrayState(
             temperature=temperature,
             pressure=pressure,
             density=density,
@@ -136,7 +143,7 @@ class ISAAtmosphere(AtmosphereBase):
 
     def pressure_at_altitude(self, altitude: np.ndarray) -> np.ndarray:
         """
-        Calculate pressure [hPa] at altitude [m], vectorized
+        Calculate pressure [Pa] at altitude [m], vectorized
 
         Calculation is split between troposphere, tropopause, and first part of stratosphere,
         with NaN for altitudes outside that range.

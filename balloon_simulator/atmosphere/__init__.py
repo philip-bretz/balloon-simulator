@@ -1,8 +1,10 @@
+from .base import AtmosphereBase
 from .isa import ISAAtmosphere
-from .state import AtmosphereQuery, AtmosphereState
+from .state import AtmosphereArrayState, AtmosphereState
 
 __all__ = [
-    "AtmosphereQuery",
+    "AtmosphereArrayState",
     "AtmosphereState",
+    "AtmosphereBase",
     "ISAAtmosphere",
 ]
